@@ -19,16 +19,25 @@ public class MainWindow extends JFrame {
 
     public MainWindow(String username) {
         setTitle("欢迎, " + username);
-        setSize(900, 700);  // 增大窗口尺寸
+        setSize(900, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
         // 创建数据库连接
         connectToDatabase();
 
-        // 主面板
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BorderLayout(10, 10));  // 使用 BorderLayout 布局
+        // 主面板设置为带背景的 JPanel
+        JPanel mainPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                // 加载并绘制背景图片
+                ImageIcon backgroundIcon = new ImageIcon("images/background.png");
+                Image backgroundImage = backgroundIcon.getImage();
+                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            }
+        };
+        mainPanel.setLayout(new BorderLayout(10, 10)); // 使用 BorderLayout 布局
 
         // 创建并设置横条区（账号管理）
         accountPanel = createPanel(new Color(70, 130, 180), 250, 80);
@@ -37,13 +46,16 @@ public class MainWindow extends JFrame {
 
         // 创建并设置左侧菜品分类区
         categoryPanel = createCategoryPanel();
+        categoryPanel.setOpaque(false); // 设置为透明以显示背景
 
         // 创建右侧购物车区域
         cartPanel = createCartPanel();
+        cartPanel.setOpaque(false); // 设置为透明以显示背景
 
         // 创建交界空白区域
         gapPanel = new JPanel();
-        gapPanel.setPreferredSize(new Dimension(50, 700));  // 交界空白区域宽度
+        gapPanel.setOpaque(false); // 设置透明以显示背景
+        gapPanel.setPreferredSize(new Dimension(50, 700)); // 交界空白区域宽度
 
         // 将面板添加到主面板
         mainPanel.add(accountPanel, BorderLayout.NORTH);
@@ -53,6 +65,26 @@ public class MainWindow extends JFrame {
 
         // 将主面板添加到窗口
         setContentPane(mainPanel);
+    }
+
+
+    private JPanel createBackgroundPanel(String imagePath) {
+        // 加载背景图片
+        ImageIcon backgroundIcon = new ImageIcon(imagePath);
+        JLabel backgroundLabel = new JLabel(backgroundIcon);
+        backgroundLabel.setLayout(new BorderLayout()); // 设置布局以覆盖组件
+
+        // 使用 JPanel 作为主面板
+        JPanel backgroundPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.drawImage(backgroundIcon.getImage(), 0, 0, getWidth(), getHeight(), this);
+            }
+        };
+        backgroundPanel.setLayout(new BorderLayout()); // 设置布局
+
+        return backgroundPanel;
     }
 
     private JPanel createPanel(Color bgColor, int width, int height) {
@@ -141,27 +173,51 @@ public class MainWindow extends JFrame {
     }
 
     // 在 createCartPanel 方法中添加结算按钮
+// 修改购物车面板的创建方法
     private JPanel createCartPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        // 创建带背景图片的购物车面板
+        JPanel cartPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                // 加载并绘制背景图片
+                ImageIcon backgroundIcon = new ImageIcon("images/cart_background.jpg");
+                Image backgroundImage = backgroundIcon.getImage();
+                // 调整背景图片大小以适应面板
+                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            }
+        };
+        cartPanel.setLayout(new BoxLayout(cartPanel, BoxLayout.Y_AXIS)); // 使用垂直布局
+        cartPanel.setPreferredSize(new Dimension(250, 500)); // 调整购物车面板的宽度和高度
 
-        // 使用自定义的购物车图片
-        String imagePath = "images/custom_cart_icon.png"; // 替换为你自己的图片路径
+        // 添加间距
+        cartPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // 使用自定义的购物车图标
+        String imagePath = "images/custom_cart_icon.png"; // 替换为你的购物车图标路径
         ImageIcon cartImageIcon = new ImageIcon(imagePath);
-        Image cartImage = cartImageIcon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH); // 设置图标大小
+        Image cartImage = cartImageIcon.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH); // 设置图标大小
         JLabel cartIcon = new JLabel(new ImageIcon(cartImage)); // 创建自定义图标
-
-        panel.add(cartIcon);
+        cartIcon.setAlignmentX(Component.CENTER_ALIGNMENT); // 居中对齐
+        cartPanel.add(cartIcon);
 
         // 购物车详情
         cartDetails = new JTextArea(10, 20);
         cartDetails.setEditable(false);
+        cartDetails.setOpaque(false); // 设置文本区域透明
+        cartDetails.setFont(new Font("微软雅黑", Font.PLAIN, 16));
+        cartDetails.setForeground(Color.WHITE); // 设置文本颜色
         JScrollPane scrollPane = new JScrollPane(cartDetails);
-        panel.add(scrollPane);
+        scrollPane.setOpaque(false); // 设置滚动面板透明
+        scrollPane.getViewport().setOpaque(false); // 设置滚动视图透明
+        cartPanel.add(scrollPane);
 
         // 总价标签
         totalPriceLabel = new JLabel("总价: ￥0.00");
-        panel.add(totalPriceLabel);
+        totalPriceLabel.setFont(new Font("微软雅黑", Font.BOLD, 18));
+        totalPriceLabel.setForeground(Color.WHITE); // 设置文本颜色
+        totalPriceLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // 居中对齐
+        cartPanel.add(totalPriceLabel);
 
         // 结算按钮
         JButton checkoutButton = new JButton("结算");
@@ -172,16 +228,15 @@ public class MainWindow extends JFrame {
         checkoutButton.setPreferredSize(new Dimension(200, 50));
         checkoutButton.setOpaque(true);
         checkoutButton.setBorder(createRoundedBorder(15));
+        checkoutButton.setAlignmentX(Component.CENTER_ALIGNMENT); // 居中对齐
 
         // 结算按钮点击事件
         checkoutButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (cartDetails.getText().isEmpty()) { // 检查购物车是否为空
-                    // 如果购物车为空，显示“您未选择任何菜品”
                     JOptionPane.showMessageDialog(MainWindow.this, "您未选择任何菜品", "提示", JOptionPane.WARNING_MESSAGE);
                 } else {
-                    // 显示支付成功的消息
                     JOptionPane.showMessageDialog(MainWindow.this, "支付成功！感谢您的购物！", "支付成功", JOptionPane.INFORMATION_MESSAGE);
 
                     // 清空购物车
@@ -192,10 +247,14 @@ public class MainWindow extends JFrame {
             }
         });
 
-        panel.add(checkoutButton);  // 将结算按钮添加到面板
+        cartPanel.add(Box.createRigidArea(new Dimension(0, 10))); // 添加间距
+        cartPanel.add(checkoutButton);
 
-        return panel;
+        return cartPanel;
     }
+
+
+
 
 
     private void connectToDatabase() {
