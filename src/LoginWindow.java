@@ -14,31 +14,96 @@ public class LoginWindow extends JFrame {
     private JButton registerButton;
 
     public LoginWindow() {
-        setTitle("登录系统");
-        setSize(400, 250);
+        setTitle("收钱吧 登录");
+        setSize(400, 350);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(5, 1));
+        setLayout(new BorderLayout());
 
+        // 主面板
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBackground(new Color(48, 99, 255)); // QQ 风格的蓝色
+
+        // Logo 面板
+        JPanel logoPanel = new JPanel();
+        logoPanel.setBackground(new Color(48, 99, 255));
+        JLabel logoLabel = new JLabel(new ImageIcon("path_to_logo.png")); // 这里加入你的Logo图片
+        logoPanel.add(logoLabel);
+        mainPanel.add(logoPanel);
+
+        // 用户名面板
         JPanel usernamePanel = new JPanel();
-        usernamePanel.add(new JLabel("用户名:"));
-        usernamePanel.add(usernameField = new JTextField(20));
-        add(usernamePanel);
+        usernamePanel.setBackground(new Color(48, 99, 255));
+        usernamePanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        JLabel usernameLabel = new JLabel("用户名:");
+        usernameLabel.setFont(new Font("微软雅黑", Font.PLAIN, 16));
+        usernameLabel.setForeground(Color.WHITE); // 字体颜色白色
+        usernameField = new JTextField(20);
+        usernameField.setFont(new Font("微软雅黑", Font.PLAIN, 16));
+        usernameField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.WHITE, 1),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+        usernamePanel.add(usernameLabel);
+        usernamePanel.add(usernameField);
+        mainPanel.add(usernamePanel);
 
+        // 密码面板
         JPanel passwordPanel = new JPanel();
-        passwordPanel.add(new JLabel("密码:"));
-        passwordPanel.add(passwordField = new JPasswordField(20));
-        add(passwordPanel);
+        passwordPanel.setBackground(new Color(48, 99, 255));
+        passwordPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        JLabel passwordLabel = new JLabel("密码:");
+        passwordLabel.setFont(new Font("微软雅黑", Font.PLAIN, 16));
+        passwordLabel.setForeground(Color.WHITE);
+        passwordField = new JPasswordField(20);
+        passwordField.setFont(new Font("微软雅黑", Font.PLAIN, 16));
+        passwordField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.WHITE, 1),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+        passwordPanel.add(passwordLabel);
+        passwordPanel.add(passwordField);
+        mainPanel.add(passwordPanel);
 
+        // 登录按钮
         loginButton = new JButton("登录");
-        add(loginButton);
+        loginButton.setFont(new Font("微软雅黑", Font.PLAIN, 18));
+        loginButton.setBackground(new Color(39, 161, 255)); // 更深的蓝色背景
+        loginButton.setForeground(Color.WHITE);
+        loginButton.setFocusPainted(false);
+        loginButton.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
+        loginButton.setPreferredSize(new Dimension(180, 40));
+        loginButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
+        // 注册按钮
         registerButton = new JButton("注册");
-        add(registerButton);
+        registerButton.setFont(new Font("微软雅黑", Font.PLAIN, 18));
+        registerButton.setBackground(new Color(40, 123, 255));
+        registerButton.setForeground(Color.WHITE);
+        registerButton.setFocusPainted(false);
+        registerButton.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
+        registerButton.setPreferredSize(new Dimension(180, 40));
+        registerButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
+        // 状态标签
         statusLabel = new JLabel("", SwingConstants.CENTER);
-        add(statusLabel);
+        statusLabel.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        statusLabel.setForeground(Color.WHITE);
 
+        // 加入面板
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(new Color(48, 99, 255));
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.add(loginButton);
+        buttonPanel.add(registerButton);
+
+        // 将所有组件加入主面板
+        mainPanel.add(buttonPanel);
+        mainPanel.add(statusLabel);
+
+        // 将主面板加入框架
+        add(mainPanel, BorderLayout.CENTER);
+
+        // 登录按钮事件监听
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -46,6 +111,7 @@ public class LoginWindow extends JFrame {
             }
         });
 
+        // 注册按钮事件监听
         registerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

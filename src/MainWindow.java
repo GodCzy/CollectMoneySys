@@ -140,6 +140,7 @@ public class MainWindow extends JFrame {
         return panel;
     }
 
+    // 在 createCartPanel 方法中添加结算按钮
     private JPanel createCartPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -161,6 +162,37 @@ public class MainWindow extends JFrame {
         // 总价标签
         totalPriceLabel = new JLabel("总价: ￥0.00");
         panel.add(totalPriceLabel);
+
+        // 结算按钮
+        JButton checkoutButton = new JButton("结算");
+        checkoutButton.setFont(new Font("微软雅黑", Font.PLAIN, 16));
+        checkoutButton.setBackground(new Color(100, 149, 237));
+        checkoutButton.setForeground(Color.WHITE);
+        checkoutButton.setFocusPainted(false);
+        checkoutButton.setPreferredSize(new Dimension(200, 50));
+        checkoutButton.setOpaque(true);
+        checkoutButton.setBorder(createRoundedBorder(15));
+
+        // 结算按钮点击事件
+        checkoutButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (cartDetails.getText().isEmpty()) { // 检查购物车是否为空
+                    // 如果购物车为空，显示“您未选择任何菜品”
+                    JOptionPane.showMessageDialog(MainWindow.this, "您未选择任何菜品", "提示", JOptionPane.WARNING_MESSAGE);
+                } else {
+                    // 显示支付成功的消息
+                    JOptionPane.showMessageDialog(MainWindow.this, "支付成功！感谢您的购物！", "支付成功", JOptionPane.INFORMATION_MESSAGE);
+
+                    // 清空购物车
+                    cartDetails.setText("");
+                    totalPrice = 0;
+                    totalPriceLabel.setText("总价: ￥0.00");
+                }
+            }
+        });
+
+        panel.add(checkoutButton);  // 将结算按钮添加到面板
 
         return panel;
     }
@@ -214,11 +246,8 @@ public class MainWindow extends JFrame {
                 // 显示菜品图片，并限制图片大小
                 String imagePath = dish.getImagePath();
                 if (imagePath != null && !imagePath.isEmpty()) {
-                    // 构造图片的相对路径
                     String fullImagePath = "images/" + imagePath;  // 假设 images 文件夹在项目根目录下
-                    ImageIcon dishImageIcon = new ImageIcon(fullImagePath);  // 创建图片图标
-
-                    // 限制图片的大小，例如设置最大宽度为 100px，最大高度为 100px
+                    ImageIcon dishImageIcon = new ImageIcon(fullImagePath);
                     Image dishImage = dishImageIcon.getImage();
                     Image resizedImage = dishImage.getScaledInstance(100, 100, Image.SCALE_SMOOTH);  // 缩放图片
                     ImageIcon resizedDishImageIcon = new ImageIcon(resizedImage);  // 创建缩放后的图片图标
@@ -228,15 +257,49 @@ public class MainWindow extends JFrame {
                     dishPanel.add(imageLabel, BorderLayout.WEST);  // 将图片放在左侧
                 }
 
-                // 添加点击事件来添加到购物车
-                dishButton.addActionListener(new ActionListener() {
+                // 显示价格的小按钮
+                JButton priceButton = new JButton("￥" + dish.getPrice());
+                priceButton.setPreferredSize(new Dimension(60, 30));
+                priceButton.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+                priceButton.setBackground(new Color(240, 128, 128));  // 选择一个显眼的颜色
+                priceButton.setForeground(Color.WHITE);
+                priceButton.setFocusPainted(false);
+                priceButton.setOpaque(true);
+                priceButton.setBorder(createRoundedBorder(15));
+
+                // 添加点击事件，点击按钮时显示价格
+                priceButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        addToCart(dish.getName());
+                        JOptionPane.showMessageDialog(MainWindow.this, dish.getName() + "的价格是: ￥" + dish.getPrice(), "菜品价格", JOptionPane.INFORMATION_MESSAGE);
                     }
                 });
 
+                // 小加号按钮
+                JButton addButton = new JButton("+");
+                addButton.setPreferredSize(new Dimension(40, 40));
+                addButton.setFont(new Font("微软雅黑", Font.PLAIN, 20));
+                addButton.setBackground(new Color(34, 139, 34));  // 加号按钮绿色
+                addButton.setForeground(Color.WHITE);
+                addButton.setFocusPainted(false);
+                addButton.setOpaque(true);
+                addButton.setBorder(createRoundedBorder(15));
+
+                // 添加加号按钮的点击事件，将菜品添加到购物车
+                addButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        addToCart(dish);
+                    }
+                });
+
+                // 在菜品按钮旁边放置价格按钮和加号按钮
+                JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                buttonPanel.add(priceButton);  // 添加价格按钮
+                buttonPanel.add(addButton);    // 添加加号按钮
+
                 dishPanel.add(dishButton, BorderLayout.CENTER);
+                dishPanel.add(buttonPanel, BorderLayout.EAST);  // 将价格按钮和加号按钮放到右边
 
                 // 添加分隔线
                 JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
@@ -256,56 +319,57 @@ public class MainWindow extends JFrame {
     }
 
 
-
     private List<Dish> getDishesFromCategory(String category) throws SQLException {
         List<Dish> dishes = new ArrayList<>();
-        String query = "SELECT name, image_path FROM dishes WHERE category_id = (SELECT id FROM dish_categories WHERE category_name = ?)";
+        String query = "SELECT name, image_path, price FROM dishes WHERE category_id = (SELECT id FROM dish_categories WHERE category_name = ?)";
         PreparedStatement stmt = connection.prepareStatement(query);
         stmt.setString(1, category);
         ResultSet rs = stmt.executeQuery();
         while (rs.next()) {
             String dishName = rs.getString("name");
             String imagePath = rs.getString("image_path"); // 获取图片路径
-            dishes.add(new Dish(dishName, imagePath));
+            int price = rs.getInt("price");  // 获取菜品价格
+            dishes.add(new Dish(dishName, imagePath, price));
         }
         return dishes;
     }
 
 
-    private void addToCart(String dishName) {
-        // 假设每个菜品的价格为30元，实际情况要从数据库查询
-        int price = 30;  // 这里需要查询数据库来获取价格
-        totalPrice += price;
+    private void addToCart(Dish dish) {
+        // 获取菜品价格
+        int price = dish.getPrice();
 
         // 更新购物车详情和总价
-        cartDetails.append(dishName + " - ￥" + price + "\n");
+        cartDetails.append(dish.getName() + " - ￥" + price + "\n");
+        totalPrice += price;
         totalPriceLabel.setText("总价: ￥" + totalPrice + ".00");
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            MainWindow mainWindow = new MainWindow("用户名"); // 将"用户名"替换为登录用户的用户名
-            mainWindow.setVisible(true);
-        });
+
+    // 新增 Dish 类用于存储菜品信息（包括价格）
+    class Dish {
+        private String name;
+        private String imagePath;
+        private int price;  // 增加价格字段
+
+        public Dish(String name, String imagePath, int price) {
+            this.name = name;
+            this.imagePath = imagePath;
+            this.price = price;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getImagePath() {
+            return imagePath;
+        }
+
+        public int getPrice() {
+            return price;  // 获取价格
+        }
     }
 }
 
-// 新增 Dish 类用于存储菜品信息
-class Dish {
-    private String name;
-    private String imagePath;
-
-    public Dish(String name, String imagePath) {
-        this.name = name;
-        this.imagePath = imagePath;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getImagePath() {
-        return imagePath;
-    }
-}
 
